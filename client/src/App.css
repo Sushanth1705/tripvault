@@ -144,3 +144,244 @@
   color: #667eea;
   font-size: 1.2rem;
 }
+
+/* Trip management */
+.dashboard-container {
+  max-width: 1080px;
+  text-align: left;
+  padding: 2.5rem;
+}
+
+.dashboard-header,
+.section-heading,
+.trip-card-top,
+.form-heading,
+.form-actions,
+.trip-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  margin: 0.25rem 0 0.5rem;
+  text-align: left;
+}
+
+.eyebrow {
+  color: #667eea;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-subtitle,
+.trip-description,
+.empty-state p {
+  color: #6b7280;
+}
+
+.create-btn {
+  margin-bottom: 2rem;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.icon-btn {
+  font-weight: 600;
+}
+
+.primary-btn {
+  background: #1f6f78;
+  color: white;
+}
+
+.primary-btn:hover {
+  background: #185b63;
+}
+
+.secondary-btn {
+  background: #eef2f3;
+  color: #31565b;
+}
+
+.danger-btn {
+  background: #fff0f0;
+  color: #b33a3a;
+}
+
+.icon-btn {
+  background: transparent;
+  color: #6b7280;
+  font-size: 1.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.trips-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.section-heading {
+  margin-bottom: 1.25rem;
+}
+
+.section-heading h2 {
+  color: #263a3d;
+  margin-top: 0.25rem;
+}
+
+.trip-count {
+  color: #7b8587;
+  font-size: 0.9rem;
+}
+
+.trip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1rem;
+}
+
+.trip-card,
+.trip-form-panel,
+.empty-state {
+  background: #fbfcfb;
+  border: 1px solid #e3e9e8;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.trip-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+
+.trip-card h3,
+.empty-state h3,
+.trip-form-panel h2 {
+  color: #263a3d;
+}
+
+.destination {
+  color: #1f6f78;
+  margin-top: 0.35rem;
+}
+
+.rating {
+  background: #fff4cf;
+  border-radius: 4px;
+  color: #926d00;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  white-space: nowrap;
+}
+
+.trip-dates {
+  color: #405457;
+  font-weight: 600;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.trip-dates span {
+  color: #1f6f78;
+  padding: 0 0.25rem;
+}
+
+.trip-description {
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.trip-actions {
+  justify-content: flex-start;
+  margin-top: auto;
+}
+
+.trip-actions button,
+.form-actions button {
+  padding: 0.6rem 1rem;
+}
+
+.state-message,
+.empty-state {
+  text-align: center;
+}
+
+.empty-state {
+  padding: 3rem 1.5rem;
+}
+
+.empty-icon {
+  color: #1f6f78;
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  margin: 0.5rem auto 1.25rem;
+  max-width: 420px;
+}
+
+.trip-form-panel {
+  margin-bottom: 2rem;
+}
+
+.form-heading {
+  margin-bottom: 1.25rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-group-wide {
+  grid-column: 1 / -1;
+}
+
+.form-group select,
+.form-group textarea {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font: inherit;
+  padding: 0.75rem;
+  width: 100%;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 1.25rem;
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group-wide {
+    grid-column: auto;
+  }
+}

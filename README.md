@@ -13,6 +13,9 @@ This Week 1 submission includes:
 - ✅ React frontend with Vite
 - ✅ Authentication flow (Register → Login → Dashboard)
 - ✅ Responsive UI
+- ✅ Authenticated trip CRUD operations
+- ✅ Per-user trip ownership enforcement
+- ✅ Create, edit, delete, loading, empty, and error states
 
 ---
 
@@ -44,7 +47,8 @@ tripvault/
 │   │   │   ├── Register.jsx        ← Registration page
 │   │   │   └── Dashboard.jsx       ← Protected dashboard
 │   │   ├── components/
-│   │   │   └── PrivateRoute.jsx    ← Route protection
+│   │   │   ├── PrivateRoute.jsx    ← Route protection
+│   │   │   └── TripForm.jsx        ← Create/edit trip form
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx     ← Auth state management
 │   │   ├── App.jsx                 ← Main app component
@@ -58,9 +62,11 @@ tripvault/
 │
 ├── server/                          ← Node.js Express Backend
 │   ├── models/
-│   │   └── User.js                 ← User schema
+│   │   ├── User.js                 ← User schema
+│   │   └── Trip.js                 ← Trip schema
 │   ├── routes/
-│   │   └── auth.js                 ← Auth endpoints
+│   │   ├── auth.js                 ← Auth endpoints
+│   │   └── trips.js                ← Protected trip CRUD endpoints
 │   ├── middleware/
 │   │   └── authMiddleware.js       ← JWT verification
 │   ├── index.js                    ← Server entry point
@@ -208,6 +214,35 @@ Response (200):
 
 ---
 
+## 🧳 Week 2: Trip Management
+
+All trip endpoints require `Authorization: Bearer <token>`. The server takes the owner from the verified JWT (`req.user.userId`); the client cannot set or change the `user` field.
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/trips` | Create a trip for the logged-in user | Yes |
+| GET | `/api/trips` | List only the logged-in user's trips | Yes |
+| GET | `/api/trips/:id` | Get one owned trip | Yes |
+| PUT | `/api/trips/:id` | Update an owned trip | Yes |
+| DELETE | `/api/trips/:id` | Delete an owned trip | Yes |
+
+Trip fields are `title`, `destination`, `startDate`, `endDate`, `description`, and `rating` (1-5), plus the required `user` reference and Mongoose timestamps. Invalid IDs return `400`, missing trips return `404`, and attempts to access another user's trip return `403`.
+
+Example create/update body:
+
+```json
+{
+  "title": "Goa Trip",
+  "destination": "Goa",
+  "startDate": "2026-08-20",
+  "endDate": "2026-08-25",
+  "description": "Beach vacation with friends",
+  "rating": 5
+}
+```
+
+The protected Dashboard fetches trips with the existing Axios instance and interceptor, displays responsive trip cards, and supports create, pre-filled edit, confirmation-based delete, empty state, loading feedback, and user-friendly errors.
+
 ## 🧪 Testing the Flow
 
 ### Using Postman or Thunder Client:
@@ -225,13 +260,22 @@ Response (200):
    - GET to `http://localhost:5050/api/auth/me`
    - Header: `Authorization: Bearer {your_token}`
 
+4. **Test trip CRUD**
+  - POST a valid body to `http://localhost:5050/api/trips` and save the returned `trip._id`.
+  - GET `/api/trips` and GET `/api/trips/:id`.
+  - PUT `/api/trips/:id` with changed trip fields.
+  - DELETE `/api/trips/:id` and confirm it is removed.
+  - Repeat with a second account's token: the other user's trip must return `403` for GET, PUT, and DELETE.
+  - Also try no token, an invalid token, an invalid ID such as `not-an-id`, and a nonexistent ObjectId.
+
 ### In the Browser:
 
 1. Open `http://localhost:5173`
 2. Click "Register" and create an account
 3. Login with your credentials
 4. You'll see your profile on the dashboard
-5. Click "Logout" to clear session
+5. Click "Create Trip", then use Edit and Delete on the trip card.
+6. Click "Logout" to clear session
 
 ---
 

@@ -9,6 +9,7 @@ const app = express();
 
 // Import routes
 const authRoutes = require("./routes/auth");
+const tripRoutes = require("./routes/trips");
 
 // Middleware
 app.use(cors());
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+app.use("/api/trips", tripRoutes);
 
 const PORT = process.env.PORT || 5050;
 

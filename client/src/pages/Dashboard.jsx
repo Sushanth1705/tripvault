@@ -1,10 +1,101 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import TripForm from '../components/TripForm'
+
+const formatDate = (value) => value
+  ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  : 'Date not set'
+
+const getApiError = (error, fallback) => {
+  if (!error.response) return 'Unable to reach the server. Check your connection and try again.'
+  return error.response.data?.message || fallback
+}
 
 const Dashboard = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, axiosInstance } = useAuth()
   const navigate = useNavigate()
+  const [trips, setTrips] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingTrip, setEditingTrip] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
+  const [error, setError] = useState('')
+  const [feedback, setFeedback] = useState('')
+
+  const fetchTrips = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const response = await axiosInstance.get('/trips')
+      setTrips(response.data.trips || [])
+    } catch (requestError) {
+      if (requestError.response?.status === 401) {
+        logout()
+        navigate('/login')
+        return
+      }
+      setError(getApiError(requestError, 'Unable to load your trips.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTrips()
+  }, [])
+
+  const handleSave = async (tripData) => {
+    try {
+      setSaving(true)
+      setError('')
+      if (editingTrip) {
+        await axiosInstance.put(`/trips/${editingTrip._id}`, tripData)
+        setFeedback('Trip updated successfully.')
+      } else {
+        await axiosInstance.post('/trips', tripData)
+        setFeedback('Trip created successfully.')
+      }
+      setFormOpen(false)
+      setEditingTrip(null)
+      await fetchTrips()
+      return true
+    } catch (requestError) {
+      setError(getApiError(requestError, 'Unable to save this trip.'))
+      return false
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (trip) => {
+    if (!window.confirm('Are you sure you want to delete this trip?')) return
+
+    try {
+      setDeletingId(trip._id)
+      setError('')
+      await axiosInstance.delete(`/trips/${trip._id}`)
+      setFeedback('Trip deleted successfully.')
+      await fetchTrips()
+    } catch (requestError) {
+      setError(getApiError(requestError, 'Unable to delete this trip.'))
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const openCreateForm = () => {
+    setEditingTrip(null)
+    setFormOpen(true)
+    setFeedback('')
+  }
+
+  const openEditForm = (trip) => {
+    setEditingTrip(trip)
+    setFormOpen(true)
+    setFeedback('')
+  }
 
   const handleLogout = () => {
     logout()
@@ -13,24 +104,73 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <h1>🗺️ Welcome to TripVault</h1>
-      <p style={{ color: '#666', marginBottom: '2rem' }}>
-        Your personal travel memory journal
-      </p>
+      <header className="dashboard-header">
+        <div>
+          <p className="eyebrow">Your travel memory journal</p>
+          <h1>Welcome back, {user?.name}</h1>
+          <p className="dashboard-subtitle">Keep the places, stories, and small details worth returning to.</p>
+        </div>
+        <button className="logout-btn" onClick={handleLogout}>Logout</button>
+      </header>
 
-      <div className="user-info">
-        <h2 style={{ color: '#667eea', marginBottom: '1rem' }}>User Profile</h2>
-        <p><strong>Name:</strong> {user?.name}</p>
-        <p><strong>Email:</strong> {user?.email}</p>
-      </div>
+      {feedback && <div className="success-message">{feedback}</div>}
+      {error && <div className="error-message">{error}</div>}
 
-      <p style={{ color: '#999', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-        More features coming in Weeks 2-4!
-      </p>
+      {!formOpen && (
+        <button className="primary-btn create-btn" onClick={openCreateForm}>+ Create Trip</button>
+      )}
 
-      <button className="logout-btn" onClick={handleLogout}>
-        Logout
-      </button>
+      {formOpen && (
+        <TripForm
+          trip={editingTrip}
+          onSubmit={handleSave}
+          onCancel={() => { setFormOpen(false); setEditingTrip(null) }}
+          loading={saving}
+        />
+      )}
+
+      <section className="trips-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Your collection</p>
+            <h2>Trips</h2>
+          </div>
+          {!loading && <span className="trip-count">{trips.length} {trips.length === 1 ? 'memory' : 'memories'}</span>}
+        </div>
+
+        {loading && <p className="state-message">Loading your trips...</p>}
+
+        {!loading && trips.length === 0 && (
+          <div className="empty-state">
+            <span className="empty-icon">✦</span>
+            <h3>No trips yet!</h3>
+            <p>Start creating your travel memories by adding your first trip.</p>
+            <button className="primary-btn" onClick={openCreateForm}>Create Your First Trip</button>
+          </div>
+        )}
+
+        {!loading && trips.length > 0 && (
+          <div className="trip-grid">
+            {trips.map(trip => (
+              <article className="trip-card" key={trip._id}>
+                <div className="trip-card-top">
+                  <div>
+                    <h3>{trip.title}</h3>
+                    <p className="destination">📍 {trip.destination}</p>
+                  </div>
+                  {trip.rating && <span className="rating">★ {trip.rating}/5</span>}
+                </div>
+                <p className="trip-dates">{formatDate(trip.startDate)} <span>→</span> {formatDate(trip.endDate)}</p>
+                {trip.description && <p className="trip-description">{trip.description}</p>}
+                <div className="trip-actions">
+                  <button className="secondary-btn" onClick={() => openEditForm(trip)} disabled={deletingId === trip._id}>Edit</button>
+                  <button className="danger-btn" onClick={() => handleDelete(trip)} disabled={deletingId === trip._id}>{deletingId === trip._id ? 'Deleting...' : 'Delete'}</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
