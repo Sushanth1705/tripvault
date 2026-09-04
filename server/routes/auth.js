@@ -15,7 +15,7 @@ const router = express.Router();
 
 router.post("/register", async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, username } = req.body;
 
         // Validate fields
         if (!name || !email || !password) {
@@ -41,12 +41,17 @@ router.post("/register", async (req, res) => {
             });
         }
 
+        const requestedUsername = (username || name).toLowerCase().trim().replace(/[^a-z0-9_]/g, "").slice(0, 30);
+        if (requestedUsername.length < 3) return res.status(400).json({ message: "Please provide a username with at least 3 letters or numbers" });
+        if (await User.findOne({ username: requestedUsername })) return res.status(409).json({ message: "Username is already taken" });
+
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create user
         const user = await User.create({
             name,
+            username: requestedUsername,
             email: email.toLowerCase(),
             password: hashedPassword
         });
@@ -56,7 +61,8 @@ router.post("/register", async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                username: user.username
             }
         });
 
@@ -126,7 +132,8 @@ router.post("/login", async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                username: user.username
             }
         });
 
@@ -160,7 +167,9 @@ router.get("/me", authMiddleware, async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                username: user.username,
+                bio: user.bio
             }
         });
 

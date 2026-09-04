@@ -366,3 +366,8 @@ Created for CodGen's Virtual Internship Program - Full Stack (MERN)
 ## 📄 License
 
 ISC
+## Week 3 features
+
+TripVault now supports Cloudinary-backed trip photo uploads, cover images, trip photo grids, and public traveller profiles at `/profile/:username`. Users can edit their bio from the dashboard.
+
+See [EXTERNAL_SETUP.md](./EXTERNAL_SETUP.md) for Cloudinary account and manual setup steps.

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: ''
   })
@@ -40,7 +41,7 @@ const Register = () => {
       return
     }
 
-    const result = await register(formData.name, formData.email, formData.password)
+    const result = await register(formData.name, formData.email, formData.password, formData.username)
 
     if (result.success) {
       setSuccess('Registration successful! Redirecting to login...')
@@ -85,6 +86,11 @@ const Register = () => {
             placeholder="Enter your email"
             disabled={loading}
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="username">Username</label>
+          <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} placeholder="your_travel_name" disabled={loading} />
         </div>
 
         <div className="form-group">

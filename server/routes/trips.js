@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const Trip = require("../models/Trip");
 const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -164,6 +165,23 @@ router.put("/:id", async (req, res) => {
             message: "Trip updated successfully",
             trip
         });
+
+    } catch (error) {
+        return handleDatabaseError(error, res);
+    }
+});
+
+router.post("/:id/upload", upload.single("image"), async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ message: "Invalid trip ID" });
+    if (!req.file) return res.status(400).json({ message: "An image file is required" });
+    try {
+        const trip = await Trip.findById(req.params.id);
+        if (!trip) return res.status(404).json({ message: "Trip not found" });
+        if (trip.user.toString() !== req.user.userId) return res.status(403).json({ message: "You are not authorized to update this trip" });
+        trip.photos.push(req.file.path);
+        if (!trip.coverImage) trip.coverImage = req.file.path;
+        await trip.save();
+        return res.status(201).json({ message: "Photo uploaded successfully", trip });
     } catch (error) {
         return handleDatabaseError(error, res);
     }

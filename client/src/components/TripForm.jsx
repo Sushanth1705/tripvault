@@ -14,6 +14,8 @@ const toDateInput = (value) => value ? new Date(value).toISOString().slice(0, 10
 const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
   const [formData, setFormData] = useState(emptyTrip)
   const [error, setError] = useState('')
+  const [image, setImage] = useState(null)
+  const [preview, setPreview] = useState('')
 
   useEffect(() => {
     setFormData(trip ? {
@@ -25,6 +27,8 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
       rating: trip.rating ?? ''
     } : emptyTrip)
     setError('')
+    setImage(null)
+    setPreview(trip?.coverImage || '')
   }, [trip])
 
   const handleChange = (event) => {
@@ -52,11 +56,14 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
 
     const submitted = await onSubmit({
       ...formData,
-      rating: formData.rating === '' ? undefined : Number(formData.rating)
+      rating: formData.rating === '' ? undefined : Number(formData.rating),
+      image
     })
 
     if (submitted) {
       setFormData(emptyTrip)
+      setImage(null)
+      setPreview('')
     }
   }
 
@@ -100,6 +107,15 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
           <div className="form-group form-group-wide">
             <label htmlFor="description">Description</label>
             <textarea id="description" name="description" value={formData.description} onChange={handleChange} disabled={loading} rows="3" placeholder="What made this trip memorable?" />
+          </div>
+          <div className="form-group form-group-wide">
+            <label htmlFor="trip-image">Trip photo</label>
+            <input id="trip-image" type="file" accept="image/*" onChange={event => {
+              const file = event.target.files?.[0]
+              setImage(file || null)
+              setPreview(file ? URL.createObjectURL(file) : (trip?.coverImage || ''))
+            }} disabled={loading} />
+            {preview && <img className="image-preview" src={preview} alt="Selected trip preview" />}
           </div>
         </div>
         <div className="form-actions">
