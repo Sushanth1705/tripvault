@@ -12,14 +12,14 @@ export const AuthProvider = ({ children }) => {
 
   // Create axios instance with token
   const axiosInstance = axios.create({
-    baseURL: resolvedApiBaseUrl,
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    baseURL: resolvedApiBaseUrl
   })
 
   // Add token to all requests
   axiosInstance.interceptors.request.use((config) => {
+    if (config.data instanceof FormData) {
+      config.headers.delete('Content-Type')
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

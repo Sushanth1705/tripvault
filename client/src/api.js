@@ -6,6 +6,5 @@ export const resolvedApiBaseUrl = (rawApiUrl && !rawApiUrl.includes('your-render
   : '/api'
 
 export const api = axios.create({
-  baseURL: resolvedApiBaseUrl,
-  headers: { 'Content-Type': 'application/json' }
+  baseURL: resolvedApiBaseUrl
 })

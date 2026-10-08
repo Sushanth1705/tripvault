@@ -32,9 +32,9 @@ TripVault is configured for seamless deployment:
 5. In the **Environment Variables** section, add the following keys from your `server/.env`:
    - `MONGO_URI` = `<your MongoDB Atlas connection string>`
    - `JWT_SECRET` = `<your secure secret string>`
-   - `CLOUDINARY_CLOUD_NAME` = `gidzg9ke`
-   - `CLOUDINARY_API_KEY` = `993667965714115`
-   - `CLOUDINARY_API_SECRET` = `vW-wcttwObVvY3fnlSP3obOIhMk`
+   - `CLOUDINARY_CLOUD_NAME` = `<your Cloudinary cloud name>`
+   - `CLOUDINARY_API_KEY` = `<your Cloudinary API key>`
+   - `CLOUDINARY_API_SECRET` = `<your Cloudinary API secret>`
    - `CLIENT_URL` = `*` (or your Vercel URL once created)
    - `PORT` = `5050`
 6. Click **Deploy Web Service**.
