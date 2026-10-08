@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
 const emptyTrip = {
   title: '',
@@ -6,7 +6,8 @@ const emptyTrip = {
   startDate: '',
   endDate: '',
   description: '',
-  rating: ''
+  rating: '',
+  coverImage: ''
 }
 
 const toDateInput = (value) => value ? new Date(value).toISOString().slice(0, 10) : ''
@@ -16,6 +17,8 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
   const [error, setError] = useState('')
   const [image, setImage] = useState(null)
   const [preview, setPreview] = useState('')
+  const [uploadMode, setUploadMode] = useState('file') // 'file' or 'url'
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     setFormData(trip ? {
@@ -24,7 +27,8 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
       startDate: toDateInput(trip.startDate),
       endDate: toDateInput(trip.endDate),
       description: trip.description || '',
-      rating: trip.rating ?? ''
+      rating: trip.rating ?? '',
+      coverImage: trip.coverImage || ''
     } : emptyTrip)
     setError('')
     setImage(null)
@@ -32,7 +36,35 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
   }, [trip])
 
   const handleChange = (event) => {
-    setFormData(prev => ({ ...prev, [event.target.name]: event.target.value }))
+    const { name, value } = event.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    if (name === 'coverImage' && uploadMode === 'url') {
+      setPreview(value)
+    }
+  }
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file (JPG, PNG, WebP)')
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image file must be under 5 MB')
+        return
+      }
+      setError('')
+      setImage(file)
+      setPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleClearImage = () => {
+    setImage(null)
+    setPreview('')
+    setFormData(prev => ({ ...prev, coverImage: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleSubmit = async (event) => {
@@ -57,6 +89,7 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
     const submitted = await onSubmit({
       ...formData,
       rating: formData.rating === '' ? undefined : Number(formData.rating),
+      coverImage: uploadMode === 'url' ? formData.coverImage : (preview && !image ? preview : undefined),
       image
     })
 
@@ -83,44 +116,156 @@ const TripForm = ({ trip, onSubmit, onCancel, loading }) => {
         <div className="form-grid">
           <div className="form-group">
             <label htmlFor="title">Title *</label>
-            <input id="title" name="title" type="text" value={formData.title} onChange={handleChange} disabled={loading} placeholder="Goa beach vacation" />
+            <input
+              id="title"
+              name="title"
+              type="text"
+              value={formData.title}
+              onChange={handleChange}
+              disabled={loading}
+              placeholder="e.g. Summer in Santorini"
+              required
+            />
           </div>
+
           <div className="form-group">
             <label htmlFor="destination">Destination *</label>
-            <input id="destination" name="destination" type="text" value={formData.destination} onChange={handleChange} disabled={loading} placeholder="Goa, India" />
+            <input
+              id="destination"
+              name="destination"
+              type="text"
+              value={formData.destination}
+              onChange={handleChange}
+              disabled={loading}
+              placeholder="e.g. Santorini, Greece"
+              required
+            />
           </div>
+
           <div className="form-group">
             <label htmlFor="startDate">Start date</label>
-            <input id="startDate" name="startDate" type="date" value={formData.startDate} onChange={handleChange} disabled={loading} />
+            <input
+              id="startDate"
+              name="startDate"
+              type="date"
+              value={formData.startDate}
+              onChange={handleChange}
+              disabled={loading}
+            />
           </div>
+
           <div className="form-group">
             <label htmlFor="endDate">End date</label>
-            <input id="endDate" name="endDate" type="date" value={formData.endDate} onChange={handleChange} disabled={loading} />
+            <input
+              id="endDate"
+              name="endDate"
+              type="date"
+              value={formData.endDate}
+              onChange={handleChange}
+              disabled={loading}
+            />
           </div>
+
           <div className="form-group">
             <label htmlFor="rating">Rating</label>
-            <select id="rating" name="rating" value={formData.rating} onChange={handleChange} disabled={loading}>
+            <select
+              id="rating"
+              name="rating"
+              value={formData.rating}
+              onChange={handleChange}
+              disabled={loading}
+            >
               <option value="">No rating</option>
-              {[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{value} / 5</option>)}
+              {[5, 4, 3, 2, 1].map(value => (
+                <option key={value} value={value}>
+                  {'★'.repeat(value)} ({value} / 5)
+                </option>
+              ))}
             </select>
           </div>
+
           <div className="form-group form-group-wide">
-            <label htmlFor="description">Description</label>
-            <textarea id="description" name="description" value={formData.description} onChange={handleChange} disabled={loading} rows="3" placeholder="What made this trip memorable?" />
+            <label htmlFor="description">Trip Memories & Journal</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              disabled={loading}
+              rows="3"
+              placeholder="Capture the highlights, sights, food, and moments..."
+            />
           </div>
+
+          {/* Photo Section with Upload / URL toggle */}
           <div className="form-group form-group-wide">
-            <label htmlFor="trip-image">Trip photo</label>
-            <input id="trip-image" type="file" accept="image/*" onChange={event => {
-              const file = event.target.files?.[0]
-              setImage(file || null)
-              setPreview(file ? URL.createObjectURL(file) : (trip?.coverImage || ''))
-            }} disabled={loading} />
-            {preview && <img className="image-preview" src={preview} alt="Selected trip preview" />}
+            <div className="photo-label-row">
+              <label htmlFor="trip-image">Trip Photo</label>
+              <div className="photo-toggle-group">
+                <button
+                  type="button"
+                  className={`photo-toggle-btn ${uploadMode === 'file' ? 'active' : ''}`}
+                  onClick={() => setUploadMode('file')}
+                >
+                  Upload File
+                </button>
+                <button
+                  type="button"
+                  className={`photo-toggle-btn ${uploadMode === 'url' ? 'active' : ''}`}
+                  onClick={() => setUploadMode('url')}
+                >
+                  Image URL
+                </button>
+              </div>
+            </div>
+
+            {uploadMode === 'file' ? (
+              <div className="file-dropzone">
+                <input
+                  id="trip-image"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={loading}
+                />
+                <p className="file-hint">Select a JPG, PNG, or WebP photo up to 5 MB</p>
+              </div>
+            ) : (
+              <input
+                id="coverImage"
+                name="coverImage"
+                type="url"
+                value={formData.coverImage}
+                onChange={handleChange}
+                disabled={loading}
+                placeholder="https://images.unsplash.com/..."
+              />
+            )}
+
+            {preview && (
+              <div className="image-preview-card">
+                <img className="image-preview" src={preview} alt="Trip preview" />
+                <button
+                  type="button"
+                  className="preview-remove-btn"
+                  onClick={handleClearImage}
+                  title="Remove image"
+                >
+                  × Remove Photo
+                </button>
+              </div>
+            )}
           </div>
         </div>
+
         <div className="form-actions">
-          <button type="button" className="secondary-btn" onClick={onCancel} disabled={loading}>Cancel</button>
-          <button type="submit" className="primary-btn" disabled={loading}>{loading ? (trip ? 'Updating...' : 'Creating...') : (trip ? 'Update trip' : 'Save trip')}</button>
+          <button type="button" className="secondary-btn" onClick={onCancel} disabled={loading}>
+            Cancel
+          </button>
+          <button type="submit" className="primary-btn" disabled={loading}>
+            {loading ? (trip ? 'Updating...' : 'Creating...') : (trip ? 'Update Trip' : 'Save Trip')}
+          </button>
         </div>
       </form>
     </div>

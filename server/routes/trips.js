@@ -13,7 +13,8 @@ const allowedFields = [
     "startDate",
     "endDate",
     "description",
-    "rating"
+    "rating",
+    "coverImage"
 ];
 
 const getTripData = (body) => {

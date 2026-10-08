@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react'
 import axios from 'axios'
 
+import { resolvedApiBaseUrl } from '../api'
+
 const AuthContext = createContext()
 
 export const AuthProvider = ({ children }) => {
@@ -10,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   // Create axios instance with token
   const axiosInstance = axios.create({
-    baseURL: '/api',
+    baseURL: resolvedApiBaseUrl,
     headers: {
       'Content-Type': 'application/json'
     }
@@ -56,9 +58,11 @@ export const AuthProvider = ({ children }) => {
       })
       return { success: true, data: response.data }
     } catch (error) {
+      const errorMsg = error.response?.data?.message ||
+        (!error.response ? 'Unable to connect to server. Ensure backend is running.' : 'Registration failed')
       return {
         success: false,
-        error: error.response?.data?.message || 'Registration failed'
+        error: errorMsg
       }
     }
   }
@@ -75,9 +79,11 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', newToken)
       return { success: true, data: response.data }
     } catch (error) {
+      const errorMsg = error.response?.data?.message ||
+        (!error.response ? 'Unable to connect to server. Ensure backend is running.' : 'Login failed')
       return {
         success: false,
-        error: error.response?.data?.message || 'Login failed'
+        error: errorMsg
       }
     }
   }

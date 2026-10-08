@@ -6,7 +6,7 @@ const PrivateRoute = ({ children }) => {
   const { token, loading } = useAuth()
 
   if (loading) {
-    return <div className="loading">Loading...</div>
+    return <div className="page-state"><span className="spinner" />Checking your session...</div>
   }
 
   return token ? children : <Navigate to="/login" />
